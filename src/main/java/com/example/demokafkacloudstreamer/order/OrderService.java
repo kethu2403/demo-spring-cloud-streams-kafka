@@ -23,16 +23,52 @@ public class OrderService {
     private KafkaProducer kafkaProducer;
 
     public Order placeOrder(Order orderIn) {
-        log.debug("Placed Order orderIn: {}", orderIn);
+        
+        log.info("Placed Order: {}", orderIn);
 
         var order = Order.builder()//
                 .itemName(orderIn.getItemName())//
-                .orderUuid(UUID.randomUUID())//
+                .orderUuid(orderIn.getOrderUuid())//
                 .orderStatus(OrderStatus.PENDING)//
                 .build(); 
         orderDataBase.put(order.getOrderUuid(), order);
-        kafkaProducer.sendMessage(order);
+        kafkaProducer.sendMessage("producer-out-0", order);
         return order;
+    }
+
+    public void checkInventory(Order orderIn) {
+        log.info("Checking Inventory for Order: {}", orderIn);
+        orderIn.setOrderStatus(OrderStatus.INVENTORY_CHECKING);
+        orderDataBase.put(orderIn.getOrderUuid(), orderIn);
+
+        try {
+            Thread.sleep(5_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if(System.currentTimeMillis() % 2 == 0) {
+            orderIn.setOrderStatus(OrderStatus.INSUFFICIENT_INVENTORY);
+            orderDataBase.put(orderIn.getOrderUuid(), orderIn);
+            log.warn("Just assuming order ran out of stock: {}", orderIn.getItemName());
+            throw new OrderFailedExcepion(String.format("insufficient inventory for order: %s", orderIn.getOrderUuid()));
+        }
+
+        kafkaProducer.sendMessage("producer-out-1", orderIn);
+    }
+
+    public void shipTheOrder(Order orderIn) {
+        log.info("Shipping Order: {}", orderIn);
+        orderIn.setOrderStatus(OrderStatus.SHIPPED);
+        orderDataBase.put(orderIn.getOrderUuid(), orderIn);
+        log.info("OrderID: {} has been shipped", orderIn.getOrderUuid());
+    }
+
+    public void cancelTheOrder(Order orderIn) {
+        log.info("Cancelling Order: {}", orderIn);
+        orderIn.setOrderStatus(OrderStatus.CANCELED);
+        orderDataBase.put(orderIn.getOrderUuid(), orderIn);
+        log.info("OrderID: {} has been cancelled", orderIn.getOrderUuid());
     }
 
 }

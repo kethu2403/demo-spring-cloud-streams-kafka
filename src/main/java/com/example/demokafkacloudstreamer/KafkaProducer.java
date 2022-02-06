@@ -13,9 +13,7 @@ public class KafkaProducer {
     @Autowired
     private StreamBridge streamBridge;
 
-    public int count = 0;
-
-    public void sendMessage(Order order) {
-        streamBridge.send("producer-out-0", order, MimeTypeUtils.APPLICATION_JSON);
+    public void sendMessage(String producerConfig, Order order) {
+        streamBridge.send(producerConfig, order, MimeTypeUtils.APPLICATION_JSON);
     }
 }

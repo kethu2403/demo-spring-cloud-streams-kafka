@@ -1,7 +1,7 @@
 spring:
   cloud:
     function:
-      definition: inventoryConsumer;producer
+      definition: inventoryConsumer;shippingConsumer;orderDlqConsumer;producer
     stream:
       kafka:
         bindings:
@@ -10,6 +10,25 @@ spring:
               configuration:
                 value.serializer: com.example.demokafkacloudstreamer.MessageSerializer
           inventoryConsumer-in-0:
+            consumer:
+              enableDlq: true
+              dlq_name: order-dlq
+              autoCommitOnError: true
+              AutoCommitOffset: true
+              dlqProducerProperties:
+                configuration:
+                  value.serializer: com.example.demokafkacloudstreamer.MessageSerializer
+              configuration:
+                value.deserializer: com.example.demokafkacloudstreamer.MessageDeSerializer
+          producer-out-1:
+            producer:
+              configuration:
+                value.serializer: com.example.demokafkacloudstreamer.MessageSerializer
+          shippingConsumer-in-0:
+            consumer:
+              configuration:
+                value.deserializer: com.example.demokafkacloudstreamer.MessageDeSerializer
+          orderDlqConsumer-in-0:
             consumer:
               configuration:
                 value.deserializer: com.example.demokafkacloudstreamer.MessageDeSerializer
@@ -24,6 +43,23 @@ spring:
                 useNativeEncoding: true # This enables using the custom serializer
         inventoryConsumer-in-0:
             destination : inventory-checking
+            group: inventoryChecking-group
+            consumer:
+              use-native-decoding: true # This enables using the custom deserializer
+              # concurrency: 3
+        producer-out-1:
+            destination : shipping-order
+            producer:
+                useNativeEncoding: true # This enables using the custom serializer
+        shippingConsumer-in-0:
+            destination : shipping-order
+            group: shipping-order-group
+            consumer:
+              use-native-decoding: true # This enables using the custom deserializer
+              # concurrency: 3 # We use this for multi thread usecase
+        orderDlqConsumer-in-0:
+            destination : order-dlq
+            group: shipping-order-group
             consumer:
               use-native-decoding: true # This enables using the custom deserializer
               # concurrency: 3
