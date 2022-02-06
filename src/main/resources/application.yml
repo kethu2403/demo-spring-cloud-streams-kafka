@@ -1,7 +1,7 @@
 spring:
   cloud:
     function:
-      definition: consumer;producer
+      definition: inventoryConsumer;producer
     stream:
       kafka:
         bindings:
@@ -9,7 +9,7 @@ spring:
             producer:
               configuration:
                 value.serializer: com.example.demokafkacloudstreamer.MessageSerializer
-          consumer-in-0:
+          inventoryConsumer-in-0:
             consumer:
               configuration:
                 value.deserializer: com.example.demokafkacloudstreamer.MessageDeSerializer
@@ -19,12 +19,12 @@ spring:
             
       bindings:
         producer-out-0:
-            destination : send-events
+            destination : inventory-checking
             producer:
                 useNativeEncoding: true # This enables using the custom serializer
-        consumer-in-0:
-            destination : send-events
+        inventoryConsumer-in-0:
+            destination : inventory-checking
             consumer:
               use-native-decoding: true # This enables using the custom deserializer
-              concurrency: 3
+              # concurrency: 3
               

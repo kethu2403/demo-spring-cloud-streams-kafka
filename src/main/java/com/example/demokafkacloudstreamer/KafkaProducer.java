@@ -1,9 +1,11 @@
 package com.example.demokafkacloudstreamer;
 
+import com.example.demokafkacloudstreamer.order.Order;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MimeTypeUtils;
 
 @Component
 public class KafkaProducer {
@@ -13,8 +15,7 @@ public class KafkaProducer {
 
     public int count = 0;
 
-    // @Scheduled(cron = "*/10 * * * * *")
-    public void sendMessage() {
-        streamBridge.send("producer-out-0", new Message("Message to be Streamed: " + count++));
+    public void sendMessage(Order order) {
+        streamBridge.send("producer-out-0", order, MimeTypeUtils.APPLICATION_JSON);
     }
 }

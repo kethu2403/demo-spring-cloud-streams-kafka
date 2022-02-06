@@ -2,6 +2,8 @@ package com.example.demokafkacloudstreamer;
 
 import java.util.function.Consumer;
 
+import com.example.demokafkacloudstreamer.order.Order;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MessageConsumer {
 
     @Bean
-    public Consumer<Message> consumer() {
-        return message -> log.info("received: {}", message);
+    public Consumer<Order> inventoryConsumer() {
+        return message -> log.info("received: {}", message.toString());
     }
 }
